@@ -201,42 +201,13 @@ void main(void)
 
 			EPwm1Regs.CMPA.half.CMPA = (Uint16)LED_duty;
 
+			//LED_duty = 0;
+
 		#if	UPDOWN_Count
 			/*******************************/
 			/* EPWM1A UPDOWN COUNT         */
 			/*******************************/
 
-			/*
-			if(FLAG_1ms_Counter == 5000)
-			{
-				FLAG_1ms_Counter = 0;
-			}
-			else
-			{
-				if(FLAG_1ms_Counter <= 2499)
-				{
-					if(LED_duty < LED_duty_min)
-					{
-						LED_duty = LED_duty_min;
-					}
-					else
-					{
-						LED_duty = LED_duty + 0.75;
-					}
-				}
-				else
-				{
-					if(LED_duty < LED_duty_min)
-					{
-						LED_duty = LED_duty_min;
-					}
-					else
-					{
-						LED_duty = LED_duty - 0.75;
-					}
-				}
-			}
-			 */
 
 			if(FLAG_1ms_Counter == 5000)
 			{
@@ -244,55 +215,113 @@ void main(void)
 			}
 			else
 			{
-				if(EPwm1_CMPA_Direction == 1)
+				if(FLAG_1ms_Counter <= 2499)	// 0 ~ 2.5초
 				{
-					if(LED_duty < LED_duty_max)
+					if(EPwm1_CMPA_Direction == 1)
 					{
-						if(LED_duty < LED_duty_min)
+						if(LED_duty < LED_duty_max)
 						{
-							LED_duty = LED_duty_min;
+							if(LED_duty < LED_duty_min)
+							{
+								LED_duty = LED_duty_min;
+							}
+							else
+							{
+								LED_duty = LED_duty + 0.75;
+							}
 						}
 						else
 						{
-							LED_duty = LED_duty + 0.75;
+							EPwm1_CMPA_Direction = 0;
+							if(LED_duty < LED_duty_min)
+							{
+								LED_duty = LED_duty_min;
+							}
+							else
+							{
+								LED_duty = LED_duty - 0.75;
+							}
 						}
 					}
 					else
 					{
-						EPwm1_CMPA_Direction = 0;
-						if(LED_duty < LED_duty_min)
+						if(LED_duty == LED_duty_min)
 						{
-							LED_duty = LED_duty_min;
+							EPwm1_CMPA_Direction = 1;
+							if(LED_duty < LED_duty_min)
+							{
+								LED_duty = LED_duty_min;
+							}
+							else
+							{
+								LED_duty = LED_duty + 0.75;
+							}
 						}
 						else
 						{
-							LED_duty = LED_duty - 0.75;
+							if(LED_duty < LED_duty_min)
+							{
+								LED_duty = LED_duty_min;
+							}
+							else
+							{
+								LED_duty = LED_duty - 0.75;
+							}
 						}
 					}
 				}
-				else
+				else	// 2.5초 이후
 				{
-					if(LED_duty == LED_duty_min)
+					if(EPwm1_CMPA_Direction == 1)
 					{
-						EPwm1_CMPA_Direction = 1;
-						if(LED_duty < LED_duty_min)
+						if(LED_duty < LED_duty_max)
 						{
-							LED_duty = LED_duty_min;
+							if(LED_duty < LED_duty_min)
+							{
+								LED_duty = LED_duty_min;
+							}
+							else
+							{
+								LED_duty = LED_duty + 0.75;
+							}
 						}
 						else
 						{
-							LED_duty = LED_duty + 0.75;
+							EPwm1_CMPA_Direction = 0;
+							if(LED_duty < LED_duty_min)
+							{
+								LED_duty = LED_duty_min;
+							}
+							else
+							{
+								LED_duty = LED_duty - 0.75;
+							}
 						}
 					}
 					else
 					{
-						if(LED_duty < LED_duty_min)
+						if(LED_duty == LED_duty_min)
 						{
-							LED_duty = LED_duty_min;
+							EPwm1_CMPA_Direction = 1;
+							if(LED_duty < LED_duty_min)
+							{
+								LED_duty = LED_duty_min;
+							}
+							else
+							{
+								LED_duty = LED_duty + 0.75;
+							}
 						}
 						else
 						{
-							LED_duty = LED_duty - 0.75;
+							if(LED_duty < LED_duty_min)
+							{
+								LED_duty = LED_duty_min;
+							}
+							else
+							{
+								LED_duty = LED_duty - 0.75;
+							}
 						}
 					}
 				}

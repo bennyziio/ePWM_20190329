@@ -5,7 +5,7 @@
 <stringAttribute key="com.ti.ccstudio.debug.debugModel.ATTR_PROGRAM.Texas Instruments XDS100v3 USB Debug Probe/C28xx" value="${build_artifact:ePWM_20190329}"/>
 <stringAttribute key="com.ti.ccstudio.debug.debugModel.ATTR_PROJECT.Texas Instruments XDS100v3 USB Debug Probe/C28xx" value="ePWM_20190329"/>
 <stringAttribute key="com.ti.ccstudio.debug.debugModel.ATTR_TARGET_CONFIG" value="${target_config_active_default:ePWM_20190329}"/>
-<stringAttribute key="com.ti.ccstudio.debug.debugModel.MRU_PROGRAM.Texas Instruments XDS100v3 USB Debug Probe/C28xx" value="C:/Users\N750\workspace_v6_1\ePWM_20190329\Debug\ePWM_20190329.out"/>
+<stringAttribute key="com.ti.ccstudio.debug.debugModel.MRU_PROGRAM.Texas Instruments XDS100v3 USB Debug Probe/C28xx" value="F:/Work_CCS\tutorial\ePWM_20190329\Debug\ePWM_20190329.out"/>
 <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_PATHS">
 <listEntry value="/ePWM_20190329"/>
 </listAttribute>
