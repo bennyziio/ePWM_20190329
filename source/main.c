@@ -9,7 +9,7 @@
 
 #define FLASH_program		1		// 1 = Flash Download, 0 = RAM Control
 
-#define UPDOWN_Count		1		// UPDOWN COUNT MODE
+#define UPDOWN_Count		0		// UPDOWN COUNT MODE
 #define UP_Count			0		// UP COUNT MODE
 #define DOWN_Count			0		// DOWN COUNT MODE
 
@@ -28,6 +28,7 @@ Uint16 FLAG_500ms_Counter = 0;
 Uint16 FLAG_5s_Counter = 0;
 
 float32 LED_duty = 0;
+float32 LED_duty_B = 0;
 float32 LED_duty_min = 0;
 float32 LED_duty_max = 1875;
 
@@ -200,8 +201,9 @@ void main(void)
 			GpioDataRegs.GPATOGGLE.all = 0x0000A000;
 
 			EPwm1Regs.CMPA.half.CMPA = (Uint16)LED_duty;
+			EPwm1Regs.CMPB = (Uint16)LED_duty_B;
 
-			//LED_duty = 0;
+			LED_duty = 375;
 
 		#if	UPDOWN_Count
 			/*******************************/
