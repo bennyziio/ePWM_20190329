@@ -94,11 +94,15 @@ InitGpio(void)
 
 	// [ BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB ]
 
-    GpioCtrlRegs.GPBMUX2.all = 0x00055000;     	// GPIO functionality GPIO48-GPIO63
+    GpioCtrlRegs.GPBMUX2.all = 0x00055550;     	// GPIO functionality GPIO48-GPIO63
     GpioCtrlRegs.GPBMUX1.all = 0xFFFF3FF5;     	// GPIO functionality GPIO32-GPIO39
 
     GpioCtrlRegs.GPBQSEL1.bit.GPIO32 = 3;		// Async input GPIO32 (SDAA)
     GpioCtrlRegs.GPBQSEL1.bit.GPIO33 = 3;		// Async input GPIO33 (SCLA)
+    GpioCtrlRegs.GPBQSEL2.bit.GPIO50 = 0;  		// Sync to SYSCLKOUT GPIO50(EQEP1A)
+	GpioCtrlRegs.GPBQSEL2.bit.GPIO51 = 0;  		// Sync to SYSCLKOUT GPIO51(EQEP1B)
+	GpioCtrlRegs.GPBQSEL2.bit.GPIO52 = 0;  		// Sync to SYSCLKOUT GPIO52(EQEP1S)
+	GpioCtrlRegs.GPBQSEL2.bit.GPIO53 = 0;  		// Sync to SYSCLKOUT GPIO53(EQEP1I)
     GpioCtrlRegs.GPBQSEL2.bit.GPIO54 = 3;		// Async input GPIO54 (SPISI)
     GpioCtrlRegs.GPBQSEL2.bit.GPIO55 = 3;		// Async input GPIO55 (SPISO)
     GpioCtrlRegs.GPBQSEL2.bit.GPIO56 = 3;		// Async input GPIO56 (SPICLK)
@@ -123,11 +127,11 @@ InitGpio(void)
 
 		GPIOB55 = 01		:	0		: SPISO 	: 	OUTPUT  1 : 	0 	: SPISOMI A
 		GPIOB54 = 01		:	0		: SPISI 	: 	INPUT   0 : 	0 	: SPISIMO A
-		GPIOB53 = 00		:	0		: GPIO		: 	INPUT  	0 : 	0 	: not used
-		GPIOB52 = 00		:	0		: GPIO		: 	INPUT 	0 : 	0 	: not used
+		GPIOB53 = 01		:	0		: EQEP1I	: 	INPUT  	0 : 	0 	: EQEP1I
+		GPIOB52 = 01		:	0		: EQEP1S	: 	INPUT 	0 : 	0 	: EQEP1S
 
-		GPIOB51 = 00		:	0		: GPIO		: 	INPUT  	0 : 	0 	: not used
-		GPIOB50 = 00		:	0		: GPIO		: 	INPUT 	0 : 	0 	: not used
+		GPIOB51 = 01		:	0		: EQEP1B	: 	INPUT  	0 : 	0 	: EQEP1B
+		GPIOB50 = 01		:	0		: EQEP1A	: 	INPUT 	0 : 	0 	: EQEP1A
 		GPIOB49 = 00		:	0		: GPIO 		: 	INPUT  	0 : 	0 	: not used
 		GPIOB48 = 00		:	0		: GPIO 		: 	INPUT   0 : 	0 	: not used
 

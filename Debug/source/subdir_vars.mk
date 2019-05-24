@@ -13,6 +13,7 @@ C_SRCS += \
 ../source/DSP2833x_CpuTimers.c \
 ../source/DSP2833x_DefaultIsr.c \
 ../source/DSP2833x_EPwm.c \
+../source/DSP2833x_EQep.c \
 ../source/DSP2833x_GlobalVariableDefs.c \
 ../source/DSP2833x_Gpio.c \
 ../source/DSP2833x_MemCopy.c \
@@ -28,6 +29,7 @@ OBJS += \
 ./source/DSP2833x_CpuTimers.obj \
 ./source/DSP2833x_DefaultIsr.obj \
 ./source/DSP2833x_EPwm.obj \
+./source/DSP2833x_EQep.obj \
 ./source/DSP2833x_GlobalVariableDefs.obj \
 ./source/DSP2833x_Gpio.obj \
 ./source/DSP2833x_MemCopy.obj \
@@ -47,6 +49,7 @@ C_DEPS += \
 ./source/DSP2833x_CpuTimers.pp \
 ./source/DSP2833x_DefaultIsr.pp \
 ./source/DSP2833x_EPwm.pp \
+./source/DSP2833x_EQep.pp \
 ./source/DSP2833x_GlobalVariableDefs.pp \
 ./source/DSP2833x_Gpio.pp \
 ./source/DSP2833x_MemCopy.pp \
@@ -59,6 +62,7 @@ C_DEPS__QUOTED += \
 "source\DSP2833x_CpuTimers.pp" \
 "source\DSP2833x_DefaultIsr.pp" \
 "source\DSP2833x_EPwm.pp" \
+"source\DSP2833x_EQep.pp" \
 "source\DSP2833x_GlobalVariableDefs.pp" \
 "source\DSP2833x_Gpio.pp" \
 "source\DSP2833x_MemCopy.pp" \
@@ -74,6 +78,7 @@ OBJS__QUOTED += \
 "source\DSP2833x_CpuTimers.obj" \
 "source\DSP2833x_DefaultIsr.obj" \
 "source\DSP2833x_EPwm.obj" \
+"source\DSP2833x_EQep.obj" \
 "source\DSP2833x_GlobalVariableDefs.obj" \
 "source\DSP2833x_Gpio.obj" \
 "source\DSP2833x_MemCopy.obj" \
@@ -99,6 +104,7 @@ C_SRCS__QUOTED += \
 "../source/DSP2833x_CpuTimers.c" \
 "../source/DSP2833x_DefaultIsr.c" \
 "../source/DSP2833x_EPwm.c" \
+"../source/DSP2833x_EQep.c" \
 "../source/DSP2833x_GlobalVariableDefs.c" \
 "../source/DSP2833x_Gpio.c" \
 "../source/DSP2833x_MemCopy.c" \

@@ -13,6 +13,8 @@
 #define UP_Count			0		// UP COUNT MODE
 #define DOWN_Count			0		// DOWN COUNT MODE
 
+void InitEQep2();
+
 Uint16 FLAG_1ms = 0;
 Uint16 FLAG_500ms = 0;
 Uint16 FLAG_5s = 0;
@@ -34,6 +36,15 @@ float32 LED_duty_max = 1875;
 
 Uint16 EPwm1_CMPA_Direction = 0;
 
+Uint16	BackTicker;
+Uint16	IsrTicker;
+
+Uint32	PositionCounter;
+Uint32	RotateDirection;
+Uint32	UTimeOutPositionLatch;
+Uint32	PastUTimeOutPositionLatch;
+int32	Displacement;
+
 // Prototype statements for functions found within this file.
 
 __interrupt void epwm1_isr(void);
@@ -43,6 +54,8 @@ __interrupt void epwm3_isr(void);
 __interrupt void cpu_timer0_isr(void);
 __interrupt void cpu_timer1_isr(void);
 __interrupt void cpu_timer2_isr(void);
+
+__interrupt void UnitTimeOut_Isr(void);
 
 void main(void)
 {
@@ -100,6 +113,7 @@ void main(void)
 	PieVectTable.EPWM1_INT = &epwm1_isr;
 	PieVectTable.EPWM2_INT = &epwm2_isr;
 	PieVectTable.EPWM3_INT = &epwm3_isr;
+	PieVectTable.EQEP1_INT = &UnitTimeOut_Isr;
 	EDIS;    // This is needed to disable write to EALLOW protected registers
 
 	/************************************************************/
@@ -146,6 +160,7 @@ void main(void)
 	IER |= M_INT3;	// EPwm1 ~ EPwm5
 	IER |= M_INT13;	// Timer1
 	IER |= M_INT14;	// Timer2
+	IER |= M_INT5;	// EQep1
 
 	/************************************************************/
 	/* Enable TIMER0 in the PIE:                                */
@@ -163,6 +178,7 @@ void main(void)
 	PieCtrlRegs.PIEIER3.bit.INTx1 = 1;		// EPwm1
 	PieCtrlRegs.PIEIER3.bit.INTx2 = 1;		// EPwm2
 	PieCtrlRegs.PIEIER3.bit.INTx3 = 1;		// EPwm3
+	PieCtrlRegs.PIEIER5.bit.INTx2 = 1;		// EQep1
 
 	/************************************************************/
 	/* For this example, only initialize the ePWM				*/
@@ -174,6 +190,20 @@ void main(void)
 	EALLOW;
 	SysCtrlRegs.PCLKCR0.bit.TBCLKSYNC = 1;
 	EDIS;
+
+	/************************************************************/
+	/* Initialize S/W modules and Variables                     */
+	/************************************************************/
+	BackTicker = 0;
+	IsrTicker = 0;
+
+	PositionCounter = 0;
+	RotateDirection = 0;
+	UTimeOutPositionLatch = 0;
+	PastUTimeOutPositionLatch = 0;
+	Displacement = 0;
+
+	InitEQep();
 
 	/************************************************************/
 	/* Enable global Interrupts and higher priority real-time   */
@@ -204,6 +234,12 @@ void main(void)
 			EPwm1Regs.CMPB = (Uint16)LED_duty_B;
 
 			LED_duty = 375;
+
+			BackTicker++;
+
+			/* Check Position & Direction */
+			PositionCounter = (Uint16)(EQep1Regs.QPOSCNT)/16;
+			RotateDirection = EQep1Regs.QEPSTS.bit.QDF;
 
 		#if	UPDOWN_Count
 			/*******************************/
@@ -573,6 +609,33 @@ __interrupt void epwm3_isr(void)
 
    // Acknowledge this interrupt to receive more interrupts from group 3
    PieCtrlRegs.PIEACK.all = PIEACK_GROUP3;
+}
+
+__interrupt void UnitTimeOut_Isr(void)
+{
+	IsrTicker++;
+
+	/* Backup Past Position Latch Value */
+	PastUTimeOutPositionLatch = UTimeOutPositionLatch;
+
+	/* Check Current Position Latch on Unit Time Out Event */
+	UTimeOutPositionLatch = EQep2Regs.QPOSLAT;
+
+	/* Calculate Position Displacement & Speed in RPM */
+	if((EQep2Regs.QFLG.bit.PCO || EQep2Regs.QFLG.bit.PCU))
+	{
+		/* Position Counter overflowed or underflowed, hence do no compute displacement */
+		EQep2Regs.QCLR.bit.PCO = 1;
+		EQep2Regs.QCLR.bit.PCU = 1;
+	}
+	else
+	{
+		Displacement = UTimeOutPositionLatch - PastUTimeOutPositionLatch;
+	}
+
+	EQep2Regs.QCLR.bit.UTO = 1;
+	EQep2Regs.QCLR.bit.INT = 1;
+	PieCtrlRegs.PIEACK.bit.ACK5 = 1;
 }
 
 //===========================================================================
