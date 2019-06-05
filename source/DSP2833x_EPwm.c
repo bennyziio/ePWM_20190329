@@ -34,7 +34,7 @@ InitEPwm(void)
 	/*  UPdown Count & - Set Timer Period        */
 	/*  Tpwm = 2 x TBPRD x TBCLK                 */
 	/*                                           */
-	/*  Priod = 150MHz / 4 / 1875  = 20Hz  		 */
+	/*  Period = 150MHz / 4 / 1875  = 20KHz  		 */
 	/*  Phase = 0                                */
 	/*  Clear Counter                            */
 	/*********************************************/
@@ -45,7 +45,7 @@ InitEPwm(void)
 	/*********************************************/
 	/* Counter Up 								 */
 	/*********************************************/
-	EPwm1Regs.TBCTL.bit.CTRMODE = TB_COUNT_UPDOWN;
+	EPwm1Regs.TBCTL.bit.CTRMODE = TB_COUNT_UP;
 
 	/*********************************************/
 	/* Disable Phase Loading					 */
@@ -61,7 +61,7 @@ InitEPwm(void)
 	/*  TBCLK = SYSCLKOUT / (HSPCLKDIV x CLKDIV) */
 	/*  TBCLK = (150MHz / (2 x 1 ))              */
 	/*********************************************/
-	EPwm1Regs.TBCTL.bit.HSPCLKDIV = TB_DIV1;
+	EPwm1Regs.TBCTL.bit.HSPCLKDIV = TB_DIV2;
 	EPwm1Regs.TBCTL.bit.CLKDIV = TB_DIV2;
 
 	/*********************************************/
@@ -79,11 +79,13 @@ InitEPwm(void)
 	/*********************************************/
 	/* AQCTLB									 */
 	/*********************************************/
-	EPwm1Regs.AQCTLA.bit.CAU = AQ_SET;
-	EPwm1Regs.AQCTLA.bit.CAD = AQ_CLEAR;
+	EPwm1Regs.AQCTLA.bit.CAU = AQ_SET;		// CTR=CMPA when inc -> EPWM1A = 1
+	EPwm1Regs.AQCTLA.bit.CAD = AQ_CLEAR;	// when dec -> EPWM1A = 0
 
 	EPwm1Regs.AQCTLB.bit.CAU = AQ_SET;
 	EPwm1Regs.AQCTLB.bit.CAD = AQ_CLEAR;
+	EPwm1Regs.AQCTLB.bit.PRD = 0x10;	// CTR=PRD -> EPWM1B = 1
+	EPwm1Regs.AQCTLB.bit.ZRO = 0x01;	// CTR=0 -> EPWM1B = 0
 
 	/*********************************************/
 	/* COMPARE Max = 1875						 */
@@ -105,8 +107,8 @@ InitEPwm(void)
 	/*********************************************/
 	/* EPWM1 Interrupt Enable					 */
 	/*********************************************/
-	EPwm1Regs.ETSEL.bit.INTSEL = 0x1;		// 1 = (TBCTR = 0x0000), 2 = (TBCTR = TBPRD)
-	EPwm1Regs.ETPS.bit.INTPRD = 0x3;		// Generate INT on 1st event
+	EPwm1Regs.ETSEL.bit.INTSEL = 0x2;		// 1 = (TBCTR = 0x0000), 2 = (TBCTR = TBPRD)
+	EPwm1Regs.ETPS.bit.INTPRD = 0x1;		// Generate INT on 1st event
 	EPwm1Regs.ETSEL.bit.INTEN = 1;		// Enable INT
 
 	/*********************************************/

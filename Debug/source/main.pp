@@ -27,6 +27,9 @@ source/main.obj: F:/Work_CCS/tutorial/ePWM_20190329/include/DSP2833x_Examples.h
 source/main.obj: F:/Work_CCS/tutorial/ePWM_20190329/include/DSP2833x_Dma_defines.h
 source/main.obj: F:/Work_CCS/tutorial/ePWM_20190329/include/DSP2833x_I2c_defines.h
 source/main.obj: F:/Work_CCS/tutorial/ePWM_20190329/include/DSP2833x_DefaultIsr.h
+source/main.obj: F:/Work_CCS/tutorial/ePWM_20190329/include/EQEP_posspeed.h
+source/main.obj: F:/Work_CCS/tutorial/ePWM_20190329/include/IQmathLib.h
+source/main.obj: C:/ti/ccsv6/tools/compiler/c2000_6.4.11/include/limits.h
 
 ../source/main.c: 
 F:/Work_CCS/tutorial/ePWM_20190329/include/DSP2833x_Device.h: 
@@ -55,3 +58,6 @@ F:/Work_CCS/tutorial/ePWM_20190329/include/DSP2833x_Examples.h:
 F:/Work_CCS/tutorial/ePWM_20190329/include/DSP2833x_Dma_defines.h: 
 F:/Work_CCS/tutorial/ePWM_20190329/include/DSP2833x_I2c_defines.h: 
 F:/Work_CCS/tutorial/ePWM_20190329/include/DSP2833x_DefaultIsr.h: 
+F:/Work_CCS/tutorial/ePWM_20190329/include/EQEP_posspeed.h: 
+F:/Work_CCS/tutorial/ePWM_20190329/include/IQmathLib.h: 
+C:/ti/ccsv6/tools/compiler/c2000_6.4.11/include/limits.h: 

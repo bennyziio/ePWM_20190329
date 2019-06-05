@@ -1,49 +1,43 @@
 #include <DSP2833x_Device.h>
 #include <DSP2833x_EPwm.h>
 #include <DSP2833x_EPwm_defines.h>
+#include <DSP2833x_EQep.h>
 #include <DSP2833x_GlobalPrototypes.h>
 #include <DSP2833x_PieCtrl.h>
 #include <DSP2833x_PieVect.h>
 #include <DSP2833x_SysCtrl.h>
 #include <DSP28x_Project.h>
+#include <EQEP_posspeed.h>
 
 #define FLASH_program		1		// 1 = Flash Download, 0 = RAM Control
 
-#define UPDOWN_Count		0		// UPDOWN COUNT MODE
-#define UP_Count			0		// UP COUNT MODE
-#define DOWN_Count			0		// DOWN COUNT MODE
+float32 SpeedRpm = 0;
 
-void InitEQep2();
+//void POSSPEED_Init();
 
 Uint16 FLAG_1ms = 0;
+Uint16 FLAG_10ms = 0;
 Uint16 FLAG_500ms = 0;
+Uint16 FLAG_2000ms = 0;
 Uint16 FLAG_5s = 0;
 
 Uint16 uCount_001ms = 0;
+Uint16 uCount_010ms = 0;
 Uint16 uCount_500ms = 0;
+Uint16 uCount_2000ms = 0;
 Uint16 uCount_5s = 0;
 
 Uint16 EPWMTimerCount = 0;
 
 Uint16 FLAG_1ms_Counter = 0;
+Uint16 FLAG_10ms_Counter = 0;
 Uint16 FLAG_500ms_Counter = 0;
+Uint16 FLAG_2000ms_Counter = 0;
 Uint16 FLAG_5s_Counter = 0;
 
-float32 LED_duty = 0;
-float32 LED_duty_B = 0;
-float32 LED_duty_min = 0;
-float32 LED_duty_max = 1875;
+float32 EPwm_duty = 0;
 
 Uint16 EPwm1_CMPA_Direction = 0;
-
-Uint16	BackTicker;
-Uint16	IsrTicker;
-
-Uint32	PositionCounter;
-Uint32	RotateDirection;
-Uint32	UTimeOutPositionLatch;
-Uint32	PastUTimeOutPositionLatch;
-int32	Displacement;
 
 // Prototype statements for functions found within this file.
 
@@ -55,7 +49,7 @@ __interrupt void cpu_timer0_isr(void);
 __interrupt void cpu_timer1_isr(void);
 __interrupt void cpu_timer2_isr(void);
 
-__interrupt void UnitTimeOut_Isr(void);
+//POSSPEED qep_posspeed=POSSPEED_DEFAULTS;
 
 void main(void)
 {
@@ -112,8 +106,8 @@ void main(void)
 	PieVectTable.TINT2 = &cpu_timer2_isr;
 	PieVectTable.EPWM1_INT = &epwm1_isr;
 	PieVectTable.EPWM2_INT = &epwm2_isr;
-	PieVectTable.EPWM3_INT = &epwm3_isr;
-	PieVectTable.EQEP1_INT = &UnitTimeOut_Isr;
+	//PieVectTable.EPWM3_INT = &epwm3_isr;
+	//PieVectTable.EQEP1_INT = &UnitTimeOut_Isr;
 	EDIS;    // This is needed to disable write to EALLOW protected registers
 
 	/************************************************************/
@@ -194,6 +188,7 @@ void main(void)
 	/************************************************************/
 	/* Initialize S/W modules and Variables                     */
 	/************************************************************/
+	/*
 	BackTicker = 0;
 	IsrTicker = 0;
 
@@ -202,8 +197,13 @@ void main(void)
 	UTimeOutPositionLatch = 0;
 	PastUTimeOutPositionLatch = 0;
 	Displacement = 0;
+	*/
 
-	InitEQep();
+	POSSPEED_Init();
+	EALLOW;
+	GpioCtrlRegs.GPADIR.bit.GPIO4 = 1;    // GPIO4 as output simulates Index signal
+	GpioDataRegs.GPACLEAR.bit.GPIO4 = 1;  // Normally low
+	EDIS;
 
 	/************************************************************/
 	/* Enable global Interrupts and higher priority real-time   */
@@ -216,6 +216,8 @@ void main(void)
 	/* Start Timer                                              */
 	/************************************************************/
 	StartCpuTimer0();
+
+	//qep_posspeed.init(&qep_posspeed);
 
 	/************************************************************/
 	/* Step 9. IDLE loop. Just sit and loop forever             */
@@ -230,288 +232,39 @@ void main(void)
 			FLAG_1ms = 0;
 			GpioDataRegs.GPATOGGLE.all = 0x0000A000;
 
-			EPwm1Regs.CMPA.half.CMPA = (Uint16)LED_duty;
-			EPwm1Regs.CMPB = (Uint16)LED_duty_B;
-
-			LED_duty = 375;
-
-			BackTicker++;
-
-			/* Check Position & Direction */
-			PositionCounter = (Uint16)(EQep1Regs.QPOSCNT)/16;
-			RotateDirection = EQep1Regs.QEPSTS.bit.QDF;
-
-		#if	UPDOWN_Count
-			/*******************************/
-			/* EPWM1A UPDOWN COUNT         */
-			/*******************************/
-
-
-			if(FLAG_1ms_Counter == 5000)
+			if(EPwm_duty == 0)
 			{
-				FLAG_1ms_Counter = 0;
+				EPwm1Regs.CMPA.half.CMPA = 0;
 			}
 			else
 			{
-				if(FLAG_1ms_Counter <= 2499)	// 0 ~ 2.5초
-				{
-					if(EPwm1_CMPA_Direction == 1)
-					{
-						if(LED_duty < LED_duty_max)
-						{
-							if(LED_duty < LED_duty_min)
-							{
-								LED_duty = LED_duty_min;
-							}
-							else
-							{
-								LED_duty = LED_duty + 0.75;
-							}
-						}
-						else
-						{
-							EPwm1_CMPA_Direction = 0;
-							if(LED_duty < LED_duty_min)
-							{
-								LED_duty = LED_duty_min;
-							}
-							else
-							{
-								LED_duty = LED_duty - 0.75;
-							}
-						}
-					}
-					else
-					{
-						if(LED_duty == LED_duty_min)
-						{
-							EPwm1_CMPA_Direction = 1;
-							if(LED_duty < LED_duty_min)
-							{
-								LED_duty = LED_duty_min;
-							}
-							else
-							{
-								LED_duty = LED_duty + 0.75;
-							}
-						}
-						else
-						{
-							if(LED_duty < LED_duty_min)
-							{
-								LED_duty = LED_duty_min;
-							}
-							else
-							{
-								LED_duty = LED_duty - 0.75;
-							}
-						}
-					}
-				}
-				else	// 2.5초 이후
-				{
-					if(EPwm1_CMPA_Direction == 1)
-					{
-						if(LED_duty < LED_duty_max)
-						{
-							if(LED_duty < LED_duty_min)
-							{
-								LED_duty = LED_duty_min;
-							}
-							else
-							{
-								LED_duty = LED_duty + 0.75;
-							}
-						}
-						else
-						{
-							EPwm1_CMPA_Direction = 0;
-							if(LED_duty < LED_duty_min)
-							{
-								LED_duty = LED_duty_min;
-							}
-							else
-							{
-								LED_duty = LED_duty - 0.75;
-							}
-						}
-					}
-					else
-					{
-						if(LED_duty == LED_duty_min)
-						{
-							EPwm1_CMPA_Direction = 1;
-							if(LED_duty < LED_duty_min)
-							{
-								LED_duty = LED_duty_min;
-							}
-							else
-							{
-								LED_duty = LED_duty + 0.75;
-							}
-						}
-						else
-						{
-							if(LED_duty < LED_duty_min)
-							{
-								LED_duty = LED_duty_min;
-							}
-							else
-							{
-								LED_duty = LED_duty - 0.75;
-							}
-						}
-					}
-				}
-			}
-		#endif
 
-		#if UP_Count
-			/*******************************/
-			/* EPWM1A UPCOUNT              */
-			/*******************************/
+				EPwm1Regs.CMPA.half.CMPA = (EPwm1Regs.TBPRD * EPwm_duty) / 100;
+				/****************************************************************/
+				// N = 60 / PPR x Mc x Tclock[rpm]								 /
+				// N = 60 / 8000 x QCPRD x 9.375MHz = SpeedRpm					 /
+				// SpeedRpm = EqepCapClk / EQep1Regs.QCPRD / EncoderCount * 60;	 /
+				/****************************************************************/
+				//SpeedRpm = 9.375E6 / EQep1Regs.QCPRD / 8000 * 60;
+				//qep_posspeed.calc(&qep_posspeed);
 
-			if(FLAG_1ms_Counter == 5000)
-			{
-				FLAG_1ms_Counter = 0;
 			}
-			else
-			{
-				if(EPwm1_CMPA_Direction == 1)
-				{
-					if(LED_duty < LED_duty_max)
-					{
-						if(LED_duty < LED_duty_min)
-						{
-							LED_duty = LED_duty_min;
-						}
-						else
-						{
-							LED_duty = 1875;
-						}
-					}
-					else
-					{
-						EPwm1_CMPA_Direction = 0;
-						if(LED_duty < LED_duty_min)
-						{
-							LED_duty = LED_duty_min;
-						}
-						else
-						{
-							LED_duty = LED_duty - 0.75;
-						}
-					}
-				}
-				else
-				{
-					if(LED_duty == LED_duty_min)
-					{
-						EPwm1_CMPA_Direction = 1;
-						if(LED_duty < LED_duty_min)
-						{
-							LED_duty = LED_duty_min;
-						}
-						else
-						{
-							LED_duty = 1875;
-						}
-					}
-					else
-					{
-						if(LED_duty < LED_duty_min)
-						{
-							LED_duty = LED_duty_min;
-						}
-						else
-						{
-							LED_duty = LED_duty - 0.75;
-						}
-					}
-				}
-			}
-		#endif
-
-		#if DOWN_Count
-			/*******************************/
-			/* EPWM1A DOWNCOUNT            */
-			/*******************************/
-			/*
-			if(FLAG_1ms_Counter == 5000) {
-				FLAG_1ms_Counter = 0;
-			} else {
-				if(LED_duty < LED_duty_max) {
-					LED_duty < LED_duty_min ? (LED_duty = LED_duty_min) : (LED_duty = LED_duty + 0.75);
-					//LED_duty = 1875;
-				} else {
-					//LED_duty < LED_duty_min ? (LED_duty = LED_duty_min) : (LED_duty = LED_duty - 0.75);
-					LED_duty = 0;
-				}
-			}
-			*/
-			if(FLAG_1ms_Counter == 5000)
-			{
-				FLAG_1ms_Counter = 0;
-			}
-			else
-			{
-				if(EPwm1_CMPA_Direction == 1)
-				{
-					if(LED_duty < LED_duty_max)
-					{
-						if(LED_duty < LED_duty_min)
-						{
-							LED_duty = LED_duty_min;
-						}
-						else
-						{
-							LED_duty = LED_duty + 0.75;
-						}
-					}
-					else
-					{
-						EPwm1_CMPA_Direction = 0;
-						if(LED_duty < LED_duty_min)
-						{
-							LED_duty = LED_duty_min;
-						}
-						else
-						{
-							LED_duty = 0;
-						}
-					}
-				}
-				else
-				{
-					if(LED_duty == LED_duty_min)
-					{
-						EPwm1_CMPA_Direction = 1;
-						if(LED_duty < LED_duty_min)
-						{
-							LED_duty = LED_duty_min;
-						}
-						else
-						{
-							LED_duty = LED_duty + 0.75;
-						}
-					}
-					else
-					{
-						if(LED_duty < LED_duty_min)
-						{
-							LED_duty = LED_duty_min;
-						}
-						else
-						{
-							LED_duty = 0;
-						}
-					}
-				}
-			}
-		#endif
 		}
 		/*******************************/
-		/* 500ms Timer Interrupt Loop    */
+		/*  10ms Timer Interrupt Loop  */
+		/*******************************/
+		if(FLAG_10ms == 1)
+		{
+			/****************************************************************/
+			// N = 60 / PPR x Mc x Tclock[rpm]								 /
+			// N = 60 / 8000 x QCPRD x 9.375MHz = SpeedRpm					 /
+			// SpeedRpm = EqepCapClk / EQep1Regs.QCPRD / EncoderCount * 60;	 /
+			/****************************************************************/
+			SpeedRpm = (9.375E6 / EQep1Regs.QCPRD / 8000) * 60;
+		}
+
+		/*******************************/
+		/* 500ms Timer Interrupt Loop  */
 		/*******************************/
 		if(FLAG_500ms == 1)
 		{
@@ -536,6 +289,17 @@ __interrupt void cpu_timer0_isr(void)
 		uCount_001ms++;
 	}
 
+	if(uCount_010ms == 99)
+	{
+		uCount_010ms = 0;
+		FLAG_10ms = 1;
+		FLAG_10ms_Counter++;
+	}
+	else
+	{
+		uCount_010ms++;
+	}
+
 	if(uCount_500ms == 4999)
 	{
 		uCount_500ms = 0;
@@ -557,7 +321,6 @@ __interrupt void cpu_timer0_isr(void)
 	{
 		uCount_5s++;
 	}
-
    // Acknowledge this interrupt to receive more interrupts from group 1
    PieCtrlRegs.PIEACK.all = PIEACK_GROUP1;
 }
@@ -580,9 +343,9 @@ __interrupt void epwm1_isr(void)
 {
 	EPWMTimerCount++;
     // Update the CMPA and CMPB values
+
 	// Clear INT flag for this timer
 	EPwm1Regs.ETCLR.bit.INT = 1;
-
 	// Acknowledge this interrupt to receive more interrupts from group 3
 	PieCtrlRegs.PIEACK.all = PIEACK_GROUP3;
 }
@@ -609,33 +372,6 @@ __interrupt void epwm3_isr(void)
 
    // Acknowledge this interrupt to receive more interrupts from group 3
    PieCtrlRegs.PIEACK.all = PIEACK_GROUP3;
-}
-
-__interrupt void UnitTimeOut_Isr(void)
-{
-	IsrTicker++;
-
-	/* Backup Past Position Latch Value */
-	PastUTimeOutPositionLatch = UTimeOutPositionLatch;
-
-	/* Check Current Position Latch on Unit Time Out Event */
-	UTimeOutPositionLatch = EQep2Regs.QPOSLAT;
-
-	/* Calculate Position Displacement & Speed in RPM */
-	if((EQep2Regs.QFLG.bit.PCO || EQep2Regs.QFLG.bit.PCU))
-	{
-		/* Position Counter overflowed or underflowed, hence do no compute displacement */
-		EQep2Regs.QCLR.bit.PCO = 1;
-		EQep2Regs.QCLR.bit.PCU = 1;
-	}
-	else
-	{
-		Displacement = UTimeOutPositionLatch - PastUTimeOutPositionLatch;
-	}
-
-	EQep2Regs.QCLR.bit.UTO = 1;
-	EQep2Regs.QCLR.bit.INT = 1;
-	PieCtrlRegs.PIEACK.bit.ACK5 = 1;
 }
 
 //===========================================================================

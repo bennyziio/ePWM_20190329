@@ -37,7 +37,7 @@ InitGpio(void)
     EALLOW;
     // [ AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA ]
     GpioCtrlRegs.GPAMUX2.all = 0x05550FA0;     	// GPIO functionality GPIO16-GPIO31
-    GpioCtrlRegs.GPAMUX1.all = 0x00002555;     	// GPIO functionality GPIO0-GPIO15
+    GpioCtrlRegs.GPAMUX1.all = 0x00002055;     	// GPIO functionality GPIO0-GPIO15
 
     GpioCtrlRegs.GPAQSEL1.all = 0x0000;    	// GPIO0-GPIO15 Synch to SYSCLKOUT
 	//GpioCtrlRegs.GPAQSEL2.all = 0x0000;    	// GPIO16-GPIO31 Synch to SYSCLKOUT
@@ -83,8 +83,8 @@ InitGpio(void)
 
     	GPIOB7	= 00		:	0		: GPIO 		: 	OUTPUT 	1 : 	1 	: IF_LDACn
     	GPIOB6	= 10		:	0		: EPWMSYNCI : 	OUTPUT 	1 : 	1 	: EPWMSYNCI
-    	GPIOB5	= 01		:	0		: EPWM3B 	: 	OUTPUT 	1 : 	1 	: EPWM3B
-    	GPIOB4	= 01		:	0		: EPWM3A 	: 	OUTPUT 	1 : 	1 	: EPWM3A
+    	GPIOB5	= 00		:	0		: GPIO 		: 	OUTPUT 	1 : 	1 	: EPWM3B
+    	GPIOB4	= 00		:	0		: GPIO 		: 	OUTPUT 	1 : 	1 	: EPWM3A
 
     	GPIOB3	= 01		:	0		: EPWM2B 	: 	OUTPUT 	1 : 	1 	: EPWM2B
     	GPIOB2	= 01		:	0		: EPWM2A 	: 	OUTPUT 	1 : 	1 	: EPWM2A

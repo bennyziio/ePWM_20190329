@@ -24,12 +24,15 @@ ORDERED_OBJS += \
 "./source/DSP2833x_PieVect.obj" \
 "./source/DSP2833x_SysCtrl.obj" \
 "./source/DSP2833x_usDelay.obj" \
+"./source/EQEP_posspeed.obj" \
 "./source/main.obj" \
 "../cmd/DSP2833x_Headers_nonBIOS.cmd" \
 "../cmd/F28335.cmd" \
+"../C2000_Lib/IQmath_fpu32.lib" \
 "../C2000_Lib/rts2800_fpu32.lib" \
 $(GEN_CMDS__FLAG) \
 -l"rts2800_fpu32.lib" \
+-l"IQmath_fpu32.lib" \
 -l"libc.a" \
 
 -include ../makefile.init
@@ -157,7 +160,7 @@ all: ePWM_20190329.out
 ePWM_20190329.out: $(OBJS) $(CMD_SRCS) $(LIB_SRCS) $(GEN_CMDS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: C2000 Linker'
-	"C:/ti/ccsv6/tools/compiler/c2000_6.4.11/bin/cl2000" -v28 -ml -mt --float_support=fpu32 --advice:performance=all -g --diag_wrap=off --diag_warning=225 --display_error_number -z -m"ePWM_20190329.map" --stack_size=0x300 --warn_sections -i"C:/ti/ccsv6/tools/compiler/c2000_6.4.11/lib" -i"C:/ti/ccsv6/tools/compiler/c2000_6.4.11/include" --reread_libs --diag_wrap=off --display_error_number --xml_link_info="ePWM_20190329_linkInfo.xml" --rom_model -o "ePWM_20190329.out" $(ORDERED_OBJS)
+	"C:/ti/ccsv6/tools/compiler/c2000_6.4.11/bin/cl2000" -v28 -ml -mt --float_support=fpu32 --advice:performance=all -g --diag_wrap=off --diag_warning=225 --display_error_number -z -m"ePWM_20190329.map" --stack_size=0x300 --warn_sections -i"C:/ti/ccsv6/tools/compiler/c2000_6.4.11/lib" -i"F:/Work_CCS/tutorial/ePWM_20190329/C2000_Lib" -i"C:/ti/ccsv6/tools/compiler/c2000_6.4.11/include" -i"F:/Work_CCS/tutorial/ePWM_20190329" -i"F:/Work_CCS/lib" --priority --reread_libs --diag_wrap=off --display_error_number --xml_link_info="ePWM_20190329_linkInfo.xml" --rom_model -o "ePWM_20190329.out" $(ORDERED_OBJS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 
@@ -170,8 +173,8 @@ ePWM_20190329.hex: $(EXE_OUTPUTS)
 # Other Targets
 clean:
 	-$(RM) $(EXE_OUTPUTS__QUOTED)$(BIN_OUTPUTS__QUOTED)
-	-$(RM) "source\DSP2833x_CpuTimers.pp" "source\DSP2833x_DefaultIsr.pp" "source\DSP2833x_EPwm.pp" "source\DSP2833x_EQep.pp" "source\DSP2833x_GlobalVariableDefs.pp" "source\DSP2833x_Gpio.pp" "source\DSP2833x_MemCopy.pp" "source\DSP2833x_PieCtrl.pp" "source\DSP2833x_PieVect.pp" "source\DSP2833x_SysCtrl.pp" "source\main.pp" 
-	-$(RM) "source\DSP2833x_ADC_cal.obj" "source\DSP2833x_CSMPasswords.obj" "source\DSP2833x_CodeStartBranch.obj" "source\DSP2833x_CpuTimers.obj" "source\DSP2833x_DefaultIsr.obj" "source\DSP2833x_EPwm.obj" "source\DSP2833x_EQep.obj" "source\DSP2833x_GlobalVariableDefs.obj" "source\DSP2833x_Gpio.obj" "source\DSP2833x_MemCopy.obj" "source\DSP2833x_PieCtrl.obj" "source\DSP2833x_PieVect.obj" "source\DSP2833x_SysCtrl.obj" "source\DSP2833x_usDelay.obj" "source\main.obj" 
+	-$(RM) "source\DSP2833x_CpuTimers.pp" "source\DSP2833x_DefaultIsr.pp" "source\DSP2833x_EPwm.pp" "source\DSP2833x_EQep.pp" "source\DSP2833x_GlobalVariableDefs.pp" "source\DSP2833x_Gpio.pp" "source\DSP2833x_MemCopy.pp" "source\DSP2833x_PieCtrl.pp" "source\DSP2833x_PieVect.pp" "source\DSP2833x_SysCtrl.pp" "source\EQEP_posspeed.pp" "source\main.pp" 
+	-$(RM) "source\DSP2833x_ADC_cal.obj" "source\DSP2833x_CSMPasswords.obj" "source\DSP2833x_CodeStartBranch.obj" "source\DSP2833x_CpuTimers.obj" "source\DSP2833x_DefaultIsr.obj" "source\DSP2833x_EPwm.obj" "source\DSP2833x_EQep.obj" "source\DSP2833x_GlobalVariableDefs.obj" "source\DSP2833x_Gpio.obj" "source\DSP2833x_MemCopy.obj" "source\DSP2833x_PieCtrl.obj" "source\DSP2833x_PieVect.obj" "source\DSP2833x_SysCtrl.obj" "source\DSP2833x_usDelay.obj" "source\EQEP_posspeed.obj" "source\main.obj" 
 	-$(RM) "source\DSP2833x_ADC_cal.pp" "source\DSP2833x_CSMPasswords.pp" "source\DSP2833x_CodeStartBranch.pp" "source\DSP2833x_usDelay.pp" 
 	-@echo 'Finished clean'
 	-@echo ' '

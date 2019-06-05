@@ -101,6 +101,13 @@ source/DSP2833x_usDelay.obj: ../source/DSP2833x_usDelay.asm $(GEN_OPTS) $(GEN_HD
 	@echo 'Finished building: $<'
 	@echo ' '
 
+source/EQEP_posspeed.obj: ../source/EQEP_posspeed.c $(GEN_OPTS) $(GEN_HDRS)
+	@echo 'Building file: $<'
+	@echo 'Invoking: C2000 Compiler'
+	"C:/ti/ccsv6/tools/compiler/c2000_6.4.11/bin/cl2000" -v28 -ml -mt --float_support=fpu32 --include_path="C:/ti/ccsv6/tools/compiler/c2000_6.4.11/include" --include_path="F:/Work_CCS/tutorial/ePWM_20190329/include" --advice:performance=all -g --diag_wrap=off --diag_warning=225 --display_error_number --preproc_with_compile --preproc_dependency="source/EQEP_posspeed.pp" --obj_directory="source" $(GEN_OPTS__FLAG) "$<"
+	@echo 'Finished building: $<'
+	@echo ' '
+
 source/main.obj: ../source/main.c $(GEN_OPTS) $(GEN_HDRS)
 	@echo 'Building file: $<'
 	@echo 'Invoking: C2000 Compiler'

@@ -20,6 +20,7 @@ C_SRCS += \
 ../source/DSP2833x_PieCtrl.c \
 ../source/DSP2833x_PieVect.c \
 ../source/DSP2833x_SysCtrl.c \
+../source/EQEP_posspeed.c \
 ../source/main.c 
 
 OBJS += \
@@ -37,6 +38,7 @@ OBJS += \
 ./source/DSP2833x_PieVect.obj \
 ./source/DSP2833x_SysCtrl.obj \
 ./source/DSP2833x_usDelay.obj \
+./source/EQEP_posspeed.obj \
 ./source/main.obj 
 
 ASM_DEPS += \
@@ -56,6 +58,7 @@ C_DEPS += \
 ./source/DSP2833x_PieCtrl.pp \
 ./source/DSP2833x_PieVect.pp \
 ./source/DSP2833x_SysCtrl.pp \
+./source/EQEP_posspeed.pp \
 ./source/main.pp 
 
 C_DEPS__QUOTED += \
@@ -69,6 +72,7 @@ C_DEPS__QUOTED += \
 "source\DSP2833x_PieCtrl.pp" \
 "source\DSP2833x_PieVect.pp" \
 "source\DSP2833x_SysCtrl.pp" \
+"source\EQEP_posspeed.pp" \
 "source\main.pp" 
 
 OBJS__QUOTED += \
@@ -86,6 +90,7 @@ OBJS__QUOTED += \
 "source\DSP2833x_PieVect.obj" \
 "source\DSP2833x_SysCtrl.obj" \
 "source\DSP2833x_usDelay.obj" \
+"source\EQEP_posspeed.obj" \
 "source\main.obj" 
 
 ASM_DEPS__QUOTED += \
@@ -111,6 +116,7 @@ C_SRCS__QUOTED += \
 "../source/DSP2833x_PieCtrl.c" \
 "../source/DSP2833x_PieVect.c" \
 "../source/DSP2833x_SysCtrl.c" \
+"../source/EQEP_posspeed.c" \
 "../source/main.c" 
 
 
