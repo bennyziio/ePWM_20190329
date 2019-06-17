@@ -73,7 +73,7 @@ Default initializer for the POSSPEED Object.
 /*-----------------------------------------------------------------------------
 Prototypes for the functions in posspeed.c                                 
 -----------------------------------------------------------------------------*/
-void POSSPEED_Init(void);
+void EQEP_Init(void);
 void POSSPEED_Calc(POSSPEED_handle);
                 
 #endif /*  __POSSPEED__ */

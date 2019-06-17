@@ -83,8 +83,8 @@ InitGpio(void)
 
     	GPIOB7	= 00		:	0		: GPIO 		: 	OUTPUT 	1 : 	1 	: IF_LDACn
     	GPIOB6	= 10		:	0		: EPWMSYNCI : 	OUTPUT 	1 : 	1 	: EPWMSYNCI
-    	GPIOB5	= 00		:	0		: GPIO 		: 	OUTPUT 	1 : 	1 	: EPWM3B
-    	GPIOB4	= 00		:	0		: GPIO 		: 	OUTPUT 	1 : 	1 	: EPWM3A
+    	GPIOB5	= 00		:	0		: GPIO 		: 	OUTPUT 	1 : 	1 	: GPIO
+    	GPIOB4	= 00		:	0		: GPIO 		: 	OUTPUT 	1 : 	1 	: GPIO
 
     	GPIOB3	= 01		:	0		: EPWM2B 	: 	OUTPUT 	1 : 	1 	: EPWM2B
     	GPIOB2	= 01		:	0		: EPWM2A 	: 	OUTPUT 	1 : 	1 	: EPWM2A

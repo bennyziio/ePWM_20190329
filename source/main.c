@@ -11,18 +11,24 @@
 
 #define FLASH_program		1		// 1 = Flash Download, 0 = RAM Control
 
-float32 SpeedRpm = 0;
+float32 MSpeedRpm = 0;
+float32 MSpeedHz = 0;
+float32 TSpeedRpm = 0;
 
-//void POSSPEED_Init();
+float32 UnitTimeOutPositionLatch = 0;
+float32 PastUnitTimeOutPositionLatch = 0;
+float32 Displacement = 0;
 
 Uint16 FLAG_1ms = 0;
 Uint16 FLAG_10ms = 0;
+Uint16 FLAG_100ms = 0;
 Uint16 FLAG_500ms = 0;
 Uint16 FLAG_2000ms = 0;
 Uint16 FLAG_5s = 0;
 
 Uint16 uCount_001ms = 0;
 Uint16 uCount_010ms = 0;
+Uint16 uCount_100ms = 0;
 Uint16 uCount_500ms = 0;
 Uint16 uCount_2000ms = 0;
 Uint16 uCount_5s = 0;
@@ -31,6 +37,7 @@ Uint16 EPWMTimerCount = 0;
 
 Uint16 FLAG_1ms_Counter = 0;
 Uint16 FLAG_10ms_Counter = 0;
+Uint16 FLAG_100ms_Counter = 0;
 Uint16 FLAG_500ms_Counter = 0;
 Uint16 FLAG_2000ms_Counter = 0;
 Uint16 FLAG_5s_Counter = 0;
@@ -49,7 +56,7 @@ __interrupt void cpu_timer0_isr(void);
 __interrupt void cpu_timer1_isr(void);
 __interrupt void cpu_timer2_isr(void);
 
-//POSSPEED qep_posspeed=POSSPEED_DEFAULTS;
+__interrupt void eqep1_isr(void);
 
 void main(void)
 {
@@ -107,7 +114,7 @@ void main(void)
 	PieVectTable.EPWM1_INT = &epwm1_isr;
 	PieVectTable.EPWM2_INT = &epwm2_isr;
 	//PieVectTable.EPWM3_INT = &epwm3_isr;
-	//PieVectTable.EQEP1_INT = &UnitTimeOut_Isr;
+	PieVectTable.EQEP1_INT = &eqep1_isr;
 	EDIS;    // This is needed to disable write to EALLOW protected registers
 
 	/************************************************************/
@@ -172,7 +179,7 @@ void main(void)
 	PieCtrlRegs.PIEIER3.bit.INTx1 = 1;		// EPwm1
 	PieCtrlRegs.PIEIER3.bit.INTx2 = 1;		// EPwm2
 	PieCtrlRegs.PIEIER3.bit.INTx3 = 1;		// EPwm3
-	PieCtrlRegs.PIEIER5.bit.INTx2 = 1;		// EQep1
+	PieCtrlRegs.PIEIER5.bit.INTx1 = 1;		// EQep1
 
 	/************************************************************/
 	/* For this example, only initialize the ePWM				*/
@@ -185,25 +192,7 @@ void main(void)
 	SysCtrlRegs.PCLKCR0.bit.TBCLKSYNC = 1;
 	EDIS;
 
-	/************************************************************/
-	/* Initialize S/W modules and Variables                     */
-	/************************************************************/
-	/*
-	BackTicker = 0;
-	IsrTicker = 0;
-
-	PositionCounter = 0;
-	RotateDirection = 0;
-	UTimeOutPositionLatch = 0;
-	PastUTimeOutPositionLatch = 0;
-	Displacement = 0;
-	*/
-
-	POSSPEED_Init();
-	EALLOW;
-	GpioCtrlRegs.GPADIR.bit.GPIO4 = 1;    // GPIO4 as output simulates Index signal
-	GpioDataRegs.GPACLEAR.bit.GPIO4 = 1;  // Normally low
-	EDIS;
+	EQEP_Init();
 
 	/************************************************************/
 	/* Enable global Interrupts and higher priority real-time   */
@@ -238,15 +227,35 @@ void main(void)
 			}
 			else
 			{
-
 				EPwm1Regs.CMPA.half.CMPA = (EPwm1Regs.TBPRD * EPwm_duty) / 100;
 				/****************************************************************/
-				// N = 60 / PPR x Mc x Tclock[rpm]								 /
-				// N = 60 / 8000 x QCPRD x 9.375MHz = SpeedRpm					 /
-				// SpeedRpm = EqepCapClk / EQep1Regs.QCPRD / EncoderCount * 60;	 /
+				// M type 														 /
+				// N = 60 * m / PPR[rpm]								 		 /
+				// N = 60 * Displacement / EncoderCount * 4 = SpeedRpm			 /
+				// MSpeedRpm = 60 * Displacement / EncoderCount * 4;	 		 /
 				/****************************************************************/
-				//SpeedRpm = 9.375E6 / EQep1Regs.QCPRD / 8000 * 60;
-				//qep_posspeed.calc(&qep_posspeed);
+
+//				if(EQep1Regs.QFLG.bit.PCO || EQep1Regs.QFLG.bit.PCU)
+//				{
+//					EQep1Regs.QCLR.bit.PCO = 1;
+//					EQep1Regs.QCLR.bit.PCU = 1;
+//				}
+//				else
+//				{
+//					MSpeedHz = (Displacement / (8000 * 4)) * 10000;
+//					MSpeedRpm = MSpeedHz * 60;
+//				}
+				//MSpeedHz = (Displacement / (8000 * 4)) * 100;
+				//MSpeedRpm = MSpeedHz * 60;
+
+				/****************************************************************/
+				// T type 														 /
+				// N = 60 / PPR x Mc x Tclock[rpm]								 /
+				// Mc = 150MHz / 16 = 9.375Mhz									 /
+				// N = 60 / 8000 x QCPRD x 9.375MHz = SpeedRpm					 /
+				// TSpeedRpm = Mc / EQep1Regs.QCPRD / EncoderCount * 60; 		 /
+				/****************************************************************/
+				TSpeedRpm = 9.375E6 / EQep1Regs.QCPRD / 8000 * 60;
 
 			}
 		}
@@ -256,11 +265,66 @@ void main(void)
 		if(FLAG_10ms == 1)
 		{
 			/****************************************************************/
-			// N = 60 / PPR x Mc x Tclock[rpm]								 /
-			// N = 60 / 8000 x QCPRD x 9.375MHz = SpeedRpm					 /
-			// SpeedRpm = EqepCapClk / EQep1Regs.QCPRD / EncoderCount * 60;	 /
+			// M type 														 /
+			// N = 60 * m / PPR[rpm]								 		 /
+			// N = 60 * Displacement / EncoderCount * 4 = SpeedRpm			 /
+			// MSpeedRpm = 60 * Displacement / EncoderCount * 4;	 		 /
 			/****************************************************************/
-			SpeedRpm = (9.375E6 / EQep1Regs.QCPRD / 8000) * 60;
+//			if(EQep1Regs.QFLG.bit.PCO || EQep1Regs.QFLG.bit.PCU)
+//			{
+//				EQep1Regs.QCLR.bit.PCO = 1;
+//				EQep1Regs.QCLR.bit.PCU = 1;
+//			}
+//			else
+//			{
+//				MSpeedHz = (Displacement / (8000 * 4)) * 10000;
+//				MSpeedRpm = MSpeedHz * 60;
+//			}
+
+//			MSpeedHz = (Displacement / (8000 * 4)) * 100;
+//			MSpeedRpm = MSpeedHz * 60;
+
+			/****************************************************************/
+			// T type 														 /
+			// N = 60 / PPR x Mc x Tclock[rpm]								 /
+			// Mc = 150MHz / 16 = 9.375Mhz									 /
+			// N = 60 / 8000 x QCPRD x 9.375MHz = SpeedRpm					 /
+			// TSpeedRpm = Mc / EQep1Regs.QCPRD / EncoderCount * 60; 		 /
+			/****************************************************************/
+			//TSpeedRpm = (9.375E6 / EQep1Regs.QCPRD / 8000) * 60;
+		}
+
+		if(FLAG_100ms == 1)
+		{
+			/****************************************************************/
+			// M type 														 /
+			// N = 60 * m / PPR[rpm]								 		 /
+			// N = 60 * Displacement / EncoderCount * 4 = SpeedRpm			 /
+			// MSpeedRpm = 60 * Displacement / EncoderCount * 4;	 		 /
+			/****************************************************************/
+
+//			if(EQep1Regs.QFLG.bit.PCO || EQep1Regs.QFLG.bit.PCU)
+//			{
+//				EQep1Regs.QCLR.bit.PCO = 1;
+//				EQep1Regs.QCLR.bit.PCU = 1;
+//			}
+//			else
+//			{
+//				MSpeedHz = (Displacement / (8000 * 4)) * 100;
+//				MSpeedRpm = MSpeedHz * 60;
+//			}
+
+			//MSpeedHz = (Displacement / (8000 * 4)) * 100;
+			//MSpeedRpm = MSpeedHz * 60;
+
+			/****************************************************************/
+			// T type 														 /
+			// N = 60 / PPR x Mc x Tclock[rpm]								 /
+			// Mc = 150MHz / 16 = 9.375Mhz									 /
+			// N = 60 / 8000 x QCPRD x 9.375MHz = SpeedRpm					 /
+			// TSpeedRpm = Mc / EQep1Regs.QCPRD / EncoderCount * 60; 		 /
+			/****************************************************************/
+			//TSpeedRpm = (9.375E6 / EQep1Regs.QCPRD / 8000) * 60;
 		}
 
 		/*******************************/
@@ -298,6 +362,17 @@ __interrupt void cpu_timer0_isr(void)
 	else
 	{
 		uCount_010ms++;
+	}
+
+	if(uCount_100ms == 999)
+	{
+		uCount_100ms = 0;
+		FLAG_100ms = 1;
+		FLAG_100ms_Counter++;
+	}
+	else
+	{
+		uCount_100ms++;
 	}
 
 	if(uCount_500ms == 4999)
@@ -372,6 +447,22 @@ __interrupt void epwm3_isr(void)
 
    // Acknowledge this interrupt to receive more interrupts from group 3
    PieCtrlRegs.PIEACK.all = PIEACK_GROUP3;
+}
+
+__interrupt void eqep1_isr(void)
+{
+	EQep1Regs.QCLR.bit.UTO = 1;
+	EQep1Regs.QCLR.bit.INT = 1;
+
+	PastUnitTimeOutPositionLatch = UnitTimeOutPositionLatch;
+	// Write past position latch value
+	UnitTimeOutPositionLatch = EQep1Regs.QPOSLAT;
+	// Read current position latch on unit time out event
+	Displacement = UnitTimeOutPositionLatch - PastUnitTimeOutPositionLatch;
+	// difference between past with current position value
+
+	// Acknowledge this interrupt to receive more interrupts from group 5
+	PieCtrlRegs.PIEACK.bit.ACK5 = 1;
 }
 
 //===========================================================================
