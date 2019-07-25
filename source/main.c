@@ -14,21 +14,30 @@
 float32 MSpeedRpm = 0;
 float32 MSpeedHz = 0;
 float32 TSpeedRpm = 0;
+float32 SpeedRPM = 0;
 
-float32 UnitTimeOutPositionLatch = 0;
-float32 PastUnitTimeOutPositionLatch = 0;
-float32 Displacement = 0;
+Uint16 Gpio_Flag = 0;
+Uint16 Main_Gpio_Flag = 0;
+
+Uint16 overflowFlag = 0;
+Uint16 underflowFlag = 0;
+
+//Uint16 1KhzCounter = 0;
 
 Uint16 FLAG_1ms = 0;
+Uint16 FLAG_5ms = 0;
 Uint16 FLAG_10ms = 0;
-Uint16 FLAG_100ms = 0;
+Uint16 FLAG_20ms = 0;
+Uint16 FLAG_50ms = 0;
 Uint16 FLAG_500ms = 0;
 Uint16 FLAG_2000ms = 0;
 Uint16 FLAG_5s = 0;
 
 Uint16 uCount_001ms = 0;
+Uint16 uCount_005ms = 0;
 Uint16 uCount_010ms = 0;
-Uint16 uCount_100ms = 0;
+Uint16 uCount_020ms = 0;
+Uint16 uCount_050ms = 0;
 Uint16 uCount_500ms = 0;
 Uint16 uCount_2000ms = 0;
 Uint16 uCount_5s = 0;
@@ -36,15 +45,20 @@ Uint16 uCount_5s = 0;
 Uint16 EPWMTimerCount = 0;
 
 Uint16 FLAG_1ms_Counter = 0;
+Uint16 FLAG_5ms_Counter = 0;
 Uint16 FLAG_10ms_Counter = 0;
-Uint16 FLAG_100ms_Counter = 0;
+Uint16 FLAG_20ms_Counter = 0;
+Uint16 FLAG_50ms_Counter = 0;
 Uint16 FLAG_500ms_Counter = 0;
 Uint16 FLAG_2000ms_Counter = 0;
 Uint16 FLAG_5s_Counter = 0;
 
 float32 EPwm_duty = 0;
 
-Uint16 EPwm1_CMPA_Direction = 0;
+long CurrentPositionCnt = 0;
+long PastPositionCnt = 0;
+long DisplacementPositionCnt = 0;
+long OfUfPositionCnt = 0;
 
 // Prototype statements for functions found within this file.
 
@@ -206,8 +220,6 @@ void main(void)
 	/************************************************************/
 	StartCpuTimer0();
 
-	//qep_posspeed.init(&qep_posspeed);
-
 	/************************************************************/
 	/* Step 9. IDLE loop. Just sit and loop forever             */
 	/************************************************************/
@@ -216,11 +228,182 @@ void main(void)
 		/*******************************/
 		/* 1ms Timer Interrupt Loop    */
 		/*******************************/
-		if(FLAG_1ms == 1)
-		{
-			FLAG_1ms = 0;
-			GpioDataRegs.GPATOGGLE.all = 0x0000A000;
+//		if(FLAG_1ms == 1)
+//		{
+//			FLAG_1ms = 0;
+//			GpioDataRegs.GPATOGGLE.all = 0x00008000;
+//
+//			if(EPwm_duty == 0)
+//			{
+//				//EPwm1Regs.CMPA.half.CMPA = 0;
+//			}
+//			else
+//			{
+//				//EPwm1Regs.CMPA.half.CMPA = (EPwm1Regs.TBPRD * EPwm_duty) / 100;
+//
+//				/****************************************************************/
+//				// M type 														 /
+//				// N = 60 * m / PPR[rpm]								 		 /
+//				// N = 60 * Displacement / EncoderCount * 4 = SpeedRpm			 /
+//				// MSpeedRpm = 60 * Displacement / EncoderCount * 4;	 		 /
+//				/****************************************************************/
+//
+//				//PastPositionCnt = CurrentPositionCnt;
+//				//CurrentPositionCnt = (unsigned long)EQep1Regs.QPOSCNT;
+//				//DisplacementPositionCnt = CurrentPositionCnt - PastPositionCnt;
+//				//AvgPositionCnt = (long)(CurrentPositionCnt + PastPositionCnt)>>1;
+//				//OfUfPositionCnt = 32000. + CurrentPositionCnt - PastPositionCnt;
+//
+//				if(EQep1Regs.QEPSTS.bit.QDF == 1)	// QPOSCNT is counting up
+//				{
+//					if(CurrentPositionCnt != PastPositionCnt)
+//					{
+//						if(CurrentPositionCnt > PastPositionCnt)
+//						{
+//							overflowFlag = 0;
+//							//DisplacementPositionCnt = CurrentPositionCnt - PastPositionCnt;
+//							if(overflowFlag == 0 && DisplacementPositionCnt > 0)
+//							{
+//								SpeedRPM = (DisplacementPositionCnt / 32000.) * 2000.;
+//								SpeedRPM = 60 * SpeedRPM;
+//							}
+//						}
+//						else	// CurrentPositionCnt < PastPositionCnt
+//						{
+//							overflowFlag = 1;
+//							if(overflowFlag == 1 && DisplacementPositionCnt < 0)
+//							{
+//								//AvgPositionCnt = (int)(CurrentPositionCnt + PastPositionCnt)>>1;
+//								//AvgPositionCnt = (int)AvgPositionCnt >> 1;
+//								//DisplacementPositionCnt += 32000.;
+//								//OfUfPositionCnt = 32000. + CurrentPositionCnt - PastPositionCnt;
+//								//DisplacementPositionCnt = CurrentPositionCnt - PastPositionCnt;
+//								SpeedRPM = (OfUfPositionCnt / 32000.) * 2000.;
+//								SpeedRPM = 60 * SpeedRPM;
+//							}
+//						}
+//						EQep1Regs.QCLR.all = 0xFFE;
+//					}
+//				}
+//				/*
+//				else	// QPOSCNT is counting down
+//				{
+//					if(CurrentPositionCnt >= PastPositionCnt)
+//					{
+//						//DisplacementPositionCnt = CurrentPositionCnt - PastPositionCnt;
+//						//AvgPositionCnt = (int)(CurrentPositionCnt + PastPositionCnt)>>1;
+//						//AvgPositionCnt = (int)AvgPositionCnt >> 1;
+//						if(DisplacementPositionCnt >= AvgPositionCnt)
+//						{
+//							//OfUfPositionCnt = CurrentPositionCnt + PastPositionCnt;
+//							SpeedRPM = 60 * (OfUfPositionCnt / 32000) * 1000;
+//						}
+//						else
+//						{
+//							SpeedRPM = 60 * (DisplacementPositionCnt / 32000) * 1000;
+//						}
+//					}
+//					else
+//					{
+//						//DisplacementPositionCnt = 65535 + CurrentPositionCnt - PastPositionCnt;
+//						SpeedRPM = 60 * (DisplacementPositionCnt / 32000) * 1000;
+//					}
+//				}
+//				*/
+//
+//				//EQep1Regs.QCLR.bit.UTO = 1;
+//
+//				/****************************************************************/
+//				// T type 														 /
+//				// N = 60 / PPR x Mc x Tclock[rpm]								 /
+//				// Mc = 150MHz / 16 = 9.375Mhz									 /
+//				// N = 60 / 8000 x QCPRD x 9.375MHz = SpeedRpm					 /
+//				// TSpeedRpm = Mc / EQep1Regs.QCPRD / EncoderCount * 60; 		 /
+//				/****************************************************************/
+//				/**********************************/
+//				// Overflow나 Underflow 발생시 계산 안함     /
+//				// 또는 회전 방향 변경시 계산 안함                            /
+//				/**********************************/
+//				/*
+//				if((EQep1Regs.QEPSTS.bit.COEF || EQep1Regs.QEPSTS.bit.CDEF)
+//					|| (EQep1Regs.QCPRDLAT == 0))
+//				{
+//					EQep1Regs.QEPSTS.bit.CDEF = 1;
+//					EQep1Regs.QEPSTS.bit.COEF = 1;
+//				}
+//				else
+//				{
+//					SpeedRPM = 9.375E6 / EQep1Regs.QCPRD / 8000 * 60;
+//				}
+//				*/
+//			}
+//		}
 
+//		if(FLAG_5ms == 1)
+//		{
+//			FLAG_5ms = 0;
+//
+//			//EQep1Regs.QCLR.bit.UTO = 1;
+//			//EQep1Regs.QCLR.bit.INT = 1;
+//
+//			if(EPwm_duty == 0)
+//			{
+//				EPwm1Regs.CMPA.half.CMPA = 0;
+//			}
+//			else
+//			{
+//				EPwm1Regs.CMPA.half.CMPA = (EPwm1Regs.TBPRD * EPwm_duty) / 100;
+//				/****************************************************************/
+//				// M type 														 /
+//				// N = 60 * m / PPR[rpm]								 		 /
+//				// N = 60 * Displacement / EncoderCount * 4 = SpeedRpm			 /
+//				// MSpeedRpm = 60 * Displacement / EncoderCount * 4;	 		 /
+//				/****************************************************************/
+//
+//				//PastPositionCnt = CurrentPositionCnt;
+//				//CurrentPositionCnt = (long)EQep1Regs.QPOSCNT;
+//				//DisplacementPositionCnt = CurrentPositionCnt - PastPositionCnt;
+//				//AvgPositionCnt = (long)(CurrentPositionCnt + PastPositionCnt)>>1;
+//				//OfUfPositionCnt = 32000. + CurrentPositionCnt - PastPositionCnt;
+//
+//				if(EQep1Regs.QEPSTS.bit.QDF == 1)	// QPOSCNT is counting up
+//				{
+//					if(CurrentPositionCnt != PastPositionCnt != 0)
+//					{
+//						if(CurrentPositionCnt >= PastPositionCnt)
+//						{
+//							overflowFlag = 0;
+//							//DisplacementPositionCnt = CurrentPositionCnt - PastPositionCnt;
+//							if(overflowFlag == 0 && DisplacementPositionCnt > 0)
+//							{
+//								SpeedRPM = (DisplacementPositionCnt / 32000.) * 500.;
+//								SpeedRPM = 60 * SpeedRPM;
+//							}
+//						}
+//						else	// CurrentPositionCnt < PastPositionCnt
+//						{
+//							overflowFlag = 1;
+//							if(overflowFlag == 1 && DisplacementPositionCnt < 0)
+//							{
+//								//AvgPositionCnt = (int)(CurrentPositionCnt + PastPositionCnt)>>1;
+//								//AvgPositionCnt = (int)AvgPositionCnt >> 1;
+//								//DisplacementPositionCnt += 32000.;
+//								//OfUfPositionCnt = 32000. + CurrentPositionCnt - PastPositionCnt;
+//								//DisplacementPositionCnt = CurrentPositionCnt - PastPositionCnt;
+//								SpeedRPM = (OfUfPositionCnt / 32000.) * 500.;
+//								SpeedRPM = 60 * SpeedRPM;
+//							}
+//						}
+//						EQep1Regs.QCLR.all = 0xFFE;
+//					}
+//				}
+//			}
+//		}
+
+		if(FLAG_50ms == 1)
+		{
+			FLAG_50ms = 0;
+			GpioDataRegs.GPATOGGLE.all = 0x00004000;
 			if(EPwm_duty == 0)
 			{
 				EPwm1Regs.CMPA.half.CMPA = 0;
@@ -235,96 +418,94 @@ void main(void)
 				// MSpeedRpm = 60 * Displacement / EncoderCount * 4;	 		 /
 				/****************************************************************/
 
-//				if(EQep1Regs.QFLG.bit.PCO || EQep1Regs.QFLG.bit.PCU)
-//				{
-//					EQep1Regs.QCLR.bit.PCO = 1;
-//					EQep1Regs.QCLR.bit.PCU = 1;
-//				}
-//				else
-//				{
-//					MSpeedHz = (Displacement / (8000 * 4)) * 10000;
-//					MSpeedRpm = MSpeedHz * 60;
-//				}
-				//MSpeedHz = (Displacement / (8000 * 4)) * 100;
-				//MSpeedRpm = MSpeedHz * 60;
+				//PastPositionCnt = CurrentPositionCnt;
+				//CurrentPositionCnt = (unsigned long)EQep1Regs.QPOSCNT;
+				//DisplacementPositionCnt = CurrentPositionCnt - PastPositionCnt;
+				//AvgPositionCnt = (long)(CurrentPositionCnt + PastPositionCnt)>>1;
+				//OfUfPositionCnt = 32000. + CurrentPositionCnt - PastPositionCnt;
+				//OfUfPositionCnt = 32000. + CurrentPositionCnt - PastPositionCnt - 65535;
+				//OfUfPositionCnt = PastPositionCnt - CurrentPositionCnt;
 
-				/****************************************************************/
-				// T type 														 /
-				// N = 60 / PPR x Mc x Tclock[rpm]								 /
-				// Mc = 150MHz / 16 = 9.375Mhz									 /
-				// N = 60 / 8000 x QCPRD x 9.375MHz = SpeedRpm					 /
-				// TSpeedRpm = Mc / EQep1Regs.QCPRD / EncoderCount * 60; 		 /
-				/****************************************************************/
-				TSpeedRpm = 9.375E6 / EQep1Regs.QCPRD / 8000 * 60;
-
+				if(EQep1Regs.QEPSTS.bit.QDF == 1)	// QPOSCNT is counting up
+				{
+					if(CurrentPositionCnt > PastPositionCnt)
+					{
+						overflowFlag = 0;
+						if(DisplacementPositionCnt > 0)
+						{
+							SpeedRPM = (DisplacementPositionCnt / 32000.) * 4500.;
+							SpeedRPM = 60 * SpeedRPM;
+						}
+						else
+						{
+							;
+						}
+					}
+					else	// CurrentPositionCnt < PastPositionCnt
+					{
+						overflowFlag = 1;
+						if(DisplacementPositionCnt < 0 && DisplacementPositionCnt != 0)
+						{
+							SpeedRPM = (OfUfPositionCnt / 32000.) * 4500.;
+							SpeedRPM = 60 * SpeedRPM;
+						}
+						else
+						{
+							;
+						}
+					}
+					if(Main_Gpio_Flag == 1)
+					{
+						Main_Gpio_Flag = 0;
+						GpioDataRegs.GPASET.bit.GPIO13 = 1;
+					}
+					else
+					{
+						Main_Gpio_Flag = 1;
+						GpioDataRegs.GPACLEAR.bit.GPIO13 = 1;
+					}
+				}
+				else		// QPOSCNT is counting down
+				{
+					if(PastPositionCnt > CurrentPositionCnt)
+					{
+						underflowFlag = 0;
+						if(DisplacementPositionCnt > 0)
+						{
+							SpeedRPM = -1.0 * (DisplacementPositionCnt / 32000.) * 4500.;
+							SpeedRPM = 60 * SpeedRPM;
+						}
+						else
+						{
+							;
+						}
+					}
+					else	// CurrentPositionCnt < PastPositionCnt
+					{
+						underflowFlag = 1;
+						if(DisplacementPositionCnt < 0 && DisplacementPositionCnt != 0)
+						{
+							SpeedRPM = -1.0 * (OfUfPositionCnt / 32000.) * 4500.;
+							SpeedRPM = 60 * SpeedRPM;
+						}
+						else
+						{
+							;
+						}
+					}
+					if(Main_Gpio_Flag == 1)
+					{
+						Main_Gpio_Flag = 0;
+						GpioDataRegs.GPASET.bit.GPIO13 = 1;
+					}
+					else
+					{
+						Main_Gpio_Flag = 1;
+						GpioDataRegs.GPACLEAR.bit.GPIO13 = 1;
+					}
+				}
+				EQep1Regs.QCLR.all = 0xFFE;
 			}
-		}
-		/*******************************/
-		/*  10ms Timer Interrupt Loop  */
-		/*******************************/
-		if(FLAG_10ms == 1)
-		{
-			/****************************************************************/
-			// M type 														 /
-			// N = 60 * m / PPR[rpm]								 		 /
-			// N = 60 * Displacement / EncoderCount * 4 = SpeedRpm			 /
-			// MSpeedRpm = 60 * Displacement / EncoderCount * 4;	 		 /
-			/****************************************************************/
-//			if(EQep1Regs.QFLG.bit.PCO || EQep1Regs.QFLG.bit.PCU)
-//			{
-//				EQep1Regs.QCLR.bit.PCO = 1;
-//				EQep1Regs.QCLR.bit.PCU = 1;
-//			}
-//			else
-//			{
-//				MSpeedHz = (Displacement / (8000 * 4)) * 10000;
-//				MSpeedRpm = MSpeedHz * 60;
-//			}
-
-//			MSpeedHz = (Displacement / (8000 * 4)) * 100;
-//			MSpeedRpm = MSpeedHz * 60;
-
-			/****************************************************************/
-			// T type 														 /
-			// N = 60 / PPR x Mc x Tclock[rpm]								 /
-			// Mc = 150MHz / 16 = 9.375Mhz									 /
-			// N = 60 / 8000 x QCPRD x 9.375MHz = SpeedRpm					 /
-			// TSpeedRpm = Mc / EQep1Regs.QCPRD / EncoderCount * 60; 		 /
-			/****************************************************************/
-			//TSpeedRpm = (9.375E6 / EQep1Regs.QCPRD / 8000) * 60;
-		}
-
-		if(FLAG_100ms == 1)
-		{
-			/****************************************************************/
-			// M type 														 /
-			// N = 60 * m / PPR[rpm]								 		 /
-			// N = 60 * Displacement / EncoderCount * 4 = SpeedRpm			 /
-			// MSpeedRpm = 60 * Displacement / EncoderCount * 4;	 		 /
-			/****************************************************************/
-
-//			if(EQep1Regs.QFLG.bit.PCO || EQep1Regs.QFLG.bit.PCU)
-//			{
-//				EQep1Regs.QCLR.bit.PCO = 1;
-//				EQep1Regs.QCLR.bit.PCU = 1;
-//			}
-//			else
-//			{
-//				MSpeedHz = (Displacement / (8000 * 4)) * 100;
-//				MSpeedRpm = MSpeedHz * 60;
-//			}
-
-			//MSpeedHz = (Displacement / (8000 * 4)) * 100;
-			//MSpeedRpm = MSpeedHz * 60;
-
-			/****************************************************************/
-			// T type 														 /
-			// N = 60 / PPR x Mc x Tclock[rpm]								 /
-			// Mc = 150MHz / 16 = 9.375Mhz									 /
-			// N = 60 / 8000 x QCPRD x 9.375MHz = SpeedRpm					 /
-			// TSpeedRpm = Mc / EQep1Regs.QCPRD / EncoderCount * 60; 		 /
-			/****************************************************************/
-			//TSpeedRpm = (9.375E6 / EQep1Regs.QCPRD / 8000) * 60;
 		}
 
 		/*******************************/
@@ -332,8 +513,12 @@ void main(void)
 		/*******************************/
 		if(FLAG_500ms == 1)
 		{
-			GpioDataRegs.GPATOGGLE.all = 0x00004000;
-		    FLAG_500ms = 0;
+			//GpioDataRegs.GPATOGGLE.all = 0x00004000;
+			FLAG_500ms = 0;
+		}
+		else
+		{
+			;
 		}
 	}
 }
@@ -353,6 +538,17 @@ __interrupt void cpu_timer0_isr(void)
 		uCount_001ms++;
 	}
 
+	if(uCount_005ms == 49)
+	{
+		uCount_005ms = 0;
+		FLAG_5ms = 1;
+		FLAG_5ms_Counter++;
+	}
+	else
+	{
+		uCount_005ms++;
+	}
+
 	if(uCount_010ms == 99)
 	{
 		uCount_010ms = 0;
@@ -364,15 +560,37 @@ __interrupt void cpu_timer0_isr(void)
 		uCount_010ms++;
 	}
 
-	if(uCount_100ms == 999)
+	if(uCount_020ms == 199)
 	{
-		uCount_100ms = 0;
-		FLAG_100ms = 1;
-		FLAG_100ms_Counter++;
+		uCount_020ms = 0;
+		FLAG_20ms = 1;
+		FLAG_20ms_Counter++;
 	}
 	else
 	{
-		uCount_100ms++;
+		uCount_020ms++;
+	}
+
+	if(uCount_050ms == 499)
+	{
+		uCount_050ms = 0;
+		FLAG_50ms = 1;
+		FLAG_50ms_Counter++;
+
+		if(Gpio_Flag == 1)
+		{
+			Gpio_Flag = 0;
+			GpioDataRegs.GPASET.bit.GPIO15 = 1;
+		}
+		else
+		{
+			Gpio_Flag = 1;
+			GpioDataRegs.GPACLEAR.bit.GPIO15 = 1;
+		}
+	}
+	else
+	{
+		uCount_050ms++;
 	}
 
 	if(uCount_500ms == 4999)
@@ -453,16 +671,22 @@ __interrupt void eqep1_isr(void)
 {
 	EQep1Regs.QCLR.bit.UTO = 1;
 	EQep1Regs.QCLR.bit.INT = 1;
-
-	PastUnitTimeOutPositionLatch = UnitTimeOutPositionLatch;
-	// Write past position latch value
-	UnitTimeOutPositionLatch = EQep1Regs.QPOSLAT;
-	// Read current position latch on unit time out event
-	Displacement = UnitTimeOutPositionLatch - PastUnitTimeOutPositionLatch;
-	// difference between past with current position value
+	//EQep1Regs.QPOSCNT = 0;
+	PastPositionCnt = CurrentPositionCnt;
+	CurrentPositionCnt = (long)EQep1Regs.QPOSCNT;
+	if(CurrentPositionCnt != PastPositionCnt)
+	{
+		DisplacementPositionCnt = CurrentPositionCnt - PastPositionCnt;
+		OfUfPositionCnt = 32000. + CurrentPositionCnt - PastPositionCnt;
+	}
+	else
+	{
+		PastPositionCnt = CurrentPositionCnt;
+		CurrentPositionCnt = (long)EQep1Regs.QPOSCNT;
+	}
 
 	// Acknowledge this interrupt to receive more interrupts from group 5
-	PieCtrlRegs.PIEACK.bit.ACK5 = 1;
+	PieCtrlRegs.PIEACK.all |= PIEACK_GROUP5;
 }
 
 //===========================================================================
