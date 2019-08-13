@@ -96,13 +96,13 @@ InitEPwm(void)
 	/*********************************************/
 	/* DeadTime 								 */
 	/*********************************************/
-	/*
-	EPwm1Regs.DBCTL.bit.OUT_MODE = DB_FULL_ENABLE;
-	EPwm1Regs.DBCTL.bit.POLSEL = DB_ACTV_HI;
-	EPwm1Regs.DBCTL.bit.IN_MODE = DBA_RED_DBB_FED;
-	EPwm1Regs.DBFED = 10;
-	EPwm1Regs.DBRED = 10;
-	*/
+
+	//EPwm1Regs.DBCTL.bit.OUT_MODE = DB_FULL_ENABLE;
+	//EPwm1Regs.DBCTL.bit.POLSEL = DB_ACTV_HI;
+	//EPwm1Regs.DBCTL.bit.IN_MODE = DBB_ALL;
+	//EPwm1Regs.DBRED = 1000;
+	EPwm1Regs.DBFED = 1000;
+
 
 	/*********************************************/
 	/* EPWM1 Interrupt Enable					 */
