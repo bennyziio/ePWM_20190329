@@ -245,22 +245,28 @@ void main(void)
 
 			PastPositionCnt = CurrentPositionCnt;
 			CurrentPositionCnt = (long)EQep1Regs.QPOSCNT;
+			//CurrentPositionCnt = (long)EQep1Regs.QPOSLAT;
 			DisplacementPositionCnt = CurrentPositionCnt - PastPositionCnt;
 
-			if(DisplacementPositionCnt < -2048)
+			//if(DisplacementPositionCnt < -2048.)
+			if(DisplacementPositionCnt < -10000.)
 			{
-				DisplacementPositionCnt = DisplacementPositionCnt + 4096.;
+				//DisplacementPositionCnt = DisplacementPositionCnt + 4096.;
+				DisplacementPositionCnt = DisplacementPositionCnt + 20000.;
 			}
-			else if(DisplacementPositionCnt > 2048)
+			//else if(DisplacementPositionCnt > 2048.)
+			else if(DisplacementPositionCnt > 10000.)
 			{
-				DisplacementPositionCnt = DisplacementPositionCnt - 4096.;
+				//DisplacementPositionCnt = DisplacementPositionCnt - 4096.;
+				DisplacementPositionCnt = DisplacementPositionCnt - 20000.;
 			}
 			else
 			{
 				;
 			}
 
-			SpeedRPM = 60. * (DisplacementPositionCnt / 4096.) * 1000.;
+			//SpeedRPM = 60. * (DisplacementPositionCnt / 4096.) * 1000.;
+			SpeedRPM = 60. * (DisplacementPositionCnt / 20000.) * 1000.;
 
 			//TSpeedRpm = 2.34375E6 / EQep1Regs.QCPRD / 1024 * 60;
 

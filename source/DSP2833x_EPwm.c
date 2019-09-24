@@ -34,7 +34,7 @@ InitEPwm(void)
 	/*  UPdown Count & - Set Timer Period        */
 	/*  Tpwm = 2 x TBPRD x TBCLK                 */
 	/*                                           */
-	/*  Period = 150MHz / 4 / 1875  = 20KHz  		 */
+	/*  Period = 150MHz / 4 / 1875  = 20KHz  	 */
 	/*  Phase = 0                                */
 	/*  Clear Counter                            */
 	/*********************************************/
@@ -81,6 +81,8 @@ InitEPwm(void)
 	/*********************************************/
 	EPwm1Regs.AQCTLA.bit.CAU = AQ_SET;		// CTR=CMPA when inc -> EPWM1A = 1
 	EPwm1Regs.AQCTLA.bit.CAD = AQ_CLEAR;	// when dec -> EPWM1A = 0
+	EPwm1Regs.AQCTLA.bit.PRD = 0x10;		// CTR=PRD -> EPWM1A = 1
+	EPwm1Regs.AQCTLA.bit.ZRO = 0x01;		// CTR=0 -> EPWM1A = 0
 
 	EPwm1Regs.AQCTLB.bit.CAU = AQ_SET;
 	EPwm1Regs.AQCTLB.bit.CAD = AQ_CLEAR;

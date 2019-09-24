@@ -99,8 +99,8 @@ InitGpio(void)
 
     GpioCtrlRegs.GPBQSEL1.bit.GPIO32 = 3;		// Async input GPIO32 (SDAA)
     GpioCtrlRegs.GPBQSEL1.bit.GPIO33 = 3;		// Async input GPIO33 (SCLA)
-    GpioCtrlRegs.GPBQSEL2.bit.GPIO50 = 1;  		// Qualification using 3 samples GPIO50(EQEP1A)
-	GpioCtrlRegs.GPBQSEL2.bit.GPIO51 = 1;  		// Qualification using 3 samples GPIO51(EQEP1B)
+    GpioCtrlRegs.GPBQSEL2.bit.GPIO50 = 2;  		// Qualification using 3 samples GPIO50(EQEP1A)
+	GpioCtrlRegs.GPBQSEL2.bit.GPIO51 = 2;  		// Qualification using 3 samples GPIO51(EQEP1B)
 	GpioCtrlRegs.GPBQSEL2.bit.GPIO52 = 0;  		// Sync to SYSCLKOUT GPIO52(EQEP1S)
 	GpioCtrlRegs.GPBQSEL2.bit.GPIO53 = 0;  		// Sync to SYSCLKOUT GPIO53(EQEP1I)
     GpioCtrlRegs.GPBQSEL2.bit.GPIO54 = 3;		// Async input GPIO54 (SPISI)
@@ -108,7 +108,7 @@ InitGpio(void)
     GpioCtrlRegs.GPBQSEL2.bit.GPIO56 = 3;		// Async input GPIO56 (SPICLK)
     GpioCtrlRegs.GPBQSEL2.bit.GPIO57 = 3;		// Async input GPIO57 (SPISTE)
 
-    //GpioCtrlRegs.GPBCTRL.all = 0x00050000;		// Sampling Period = Tsysclkout * 2 (GPIO48 to GPIO55)
+    GpioCtrlRegs.GPBCTRL.all = 0x00030000;		// Sampling Period = Tsysclkout * 2 (GPIO48 to GPIO55)
 
     GpioCtrlRegs.GPBPUD.all = 0x03000077;      	// Pullup's enabled GPIO32-GPIO63
 
